@@ -186,7 +186,12 @@ app.post('/api/verify-otp', async (req, res) => {
     // NOTE: The legacy napi.kotaksecurities.com host is unreachable.
     // If a valid OAuth token is required, we need the new OAuth host from Kotak.
     // For now, we will use a placeholder or assume the legacy auth token is bypassed.
-    const accessToken = process.env.KOTAK_API_KEY; // The API uses the Consumer Key as the token directly
+    const accessToken = process.env.KOTAK_API_KEY; 
+    
+    if (!process.env.KOTAK_USER_ID || !process.env.KOTAK_API_KEY) {
+      console.error('[Kotak API] Missing Environment Variables. KOTAK_USER_ID or KOTAK_API_KEY is not set.');
+      return res.status(400).json({ error: 'Server configuration error: Missing Kotak API Credentials in environment variables.' });
+    }
     
     // As per the provided curl request for tradeApiLogin
     const payload = {
@@ -242,12 +247,17 @@ app.post('/api/verify-otp', async (req, res) => {
         throw new Error('tradeApiValidate failed to return tokens');
       }
     } else {
-      res.status(401).json({ success: false, message: 'Invalid credentials or OTP' });
+      res.status(401).json({ success: false, error: 'Invalid credentials or OTP' });
     }
   } catch (error) {
     console.error('[Kotak API] Login Error:', error.response ? error.response.data : error.message);
+    const detailMsg = error.response && error.response.data && error.response.data.errMsg 
+        ? error.response.data.errMsg 
+        : error.message;
+        
     res.status(500).json({ 
-      error: 'TOTP Verification Failed', 
+      success: false,
+      error: 'TOTP Verification Failed: ' + detailMsg, 
       details: error.response?.data || error.message 
     });
   }
