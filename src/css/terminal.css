@@ -1,0 +1,399 @@
+/* Bloomberg Professional Terminal - Design System & Master Layout */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bbg-bg: #07070a;
+  --bbg-panel-bg: #0d0d14;
+  --bbg-panel-border: #1a1a26;
+  --bbg-panel-border-bright: #2d2d42;
+
+  --bbg-amber: #ff9900;
+  --bbg-amber-dim: #995c00;
+  --bbg-amber-glow: rgba(255, 153, 0, 0.25);
+
+  --bbg-cyan: #00e5ff;
+  --bbg-cyan-dim: #008291;
+  --bbg-cyan-glow: rgba(0, 229, 255, 0.25);
+
+  --bbg-green: #00ff66;
+  --bbg-green-dim: #008033;
+  --bbg-red: #ff3344;
+  --bbg-red-dim: #991f29;
+  --bbg-yellow: #ffff66;
+  
+  --bbg-text: #cccccc;
+  --bbg-text-bright: #ffffff;
+  --bbg-text-dim: #777788;
+  --bbg-text-dark: #444455;
+
+  --font-mono: 'JetBrains Mono', 'Share Tech Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bbg-bg);
+  color: var(--bbg-text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* CRT Scanline effect (subtle) */
+body::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #09090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #252536;
+  border-radius: 1px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bbg-amber);
+}
+
+/* Bloomberg Header & <GO> Bar */
+.bbg-header {
+  background: #0b0b12;
+  border-bottom: 2px solid var(--bbg-amber);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.bbg-top-telemetry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  font-size: 11px;
+  background: #060609;
+  border-bottom: 1px solid #161622;
+}
+
+.bbg-telemetry-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bbg-telemetry-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--bbg-green);
+  box-shadow: 0 0 6px var(--bbg-green);
+  animation: ledPulse 1.8s infinite;
+}
+
+@keyframes ledPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.bbg-command-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.bbg-prompt-label {
+  color: var(--bbg-amber);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bbg-command-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #050508;
+  border: 1px solid var(--bbg-amber);
+  box-shadow: inset 0 0 4px var(--bbg-amber-glow);
+  padding: 2px 8px;
+  position: relative;
+}
+
+#bbg-cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--bbg-amber);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  caret-color: var(--bbg-amber);
+}
+
+#bbg-cmd-input::placeholder {
+  color: #554422;
+  font-weight: 400;
+}
+
+.bbg-go-btn {
+  background: var(--bbg-amber);
+  color: #000000;
+  border: none;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 3px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s ease;
+}
+
+.bbg-go-btn:hover {
+  background: #ffb833;
+  box-shadow: 0 0 8px var(--bbg-amber);
+}
+
+.bbg-cancel-btn {
+  background: #252536;
+  color: #aaaabb;
+  border: 1px solid #3d3d54;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.bbg-cancel-btn:hover {
+  background: #36364d;
+  color: #ffffff;
+}
+
+/* Bloomberg Function Keys Ribbon */
+.bbg-fkeys-ribbon {
+  display: flex;
+  background: #09090f;
+  border-bottom: 1px solid var(--bbg-panel-border);
+  overflow-x: auto;
+}
+
+.bbg-fkey-btn {
+  background: transparent;
+  border: none;
+  border-right: 1px solid #191924;
+  color: var(--bbg-text-dim);
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.bbg-fkey-btn:hover {
+  background: #181826;
+  color: var(--bbg-text-bright);
+}
+
+.bbg-fkey-num {
+  color: var(--bbg-amber);
+  font-weight: 700;
+}
+
+/* Quick Ticker Ribbon */
+.bbg-ticker-ribbon {
+  display: flex;
+  align-items: center;
+  background: #0a0a10;
+  border-bottom: 1px solid var(--bbg-panel-border);
+  padding: 3px 10px;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.bbg-ticker-tab {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 2px;
+  color: var(--bbg-text-dim);
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.bbg-ticker-tab:hover {
+  color: var(--bbg-text-bright);
+}
+
+.bbg-ticker-tab.active {
+  color: #000000;
+  background: var(--bbg-amber);
+  border-color: var(--bbg-amber);
+  font-weight: 800;
+}
+
+.bbg-ticker-price {
+  font-weight: 700;
+}
+
+.bbg-quick-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bbg-pill-select {
+  background: #12121c;
+  color: var(--bbg-amber);
+  border: 1px solid #2d2d42;
+  font-size: 10px;
+  padding: 2px 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Workspace Grid System */
+.bbg-workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  grid-template-rows: 1.15fr 0.85fr;
+  gap: 3px;
+  background: #050507;
+  padding: 3px;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+.bbg-pane {
+  background: var(--bbg-panel-bg);
+  border: 1px solid var(--bbg-panel-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  /* Modern Web Guidance: containment boundaries */
+  content-visibility: auto;
+  contain: layout style paint;
+  min-height: 0;
+  min-width: 0;
+}
+
+.bbg-pane:hover {
+  border-color: var(--bbg-panel-border-bright);
+}
+
+.bbg-pane-header {
+  height: 25px;
+  background: #11111a;
+  border-bottom: 1px solid #1c1c2b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.bbg-pane-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Utility Colors & Text */
+.bbg-amber { color: var(--bbg-amber) !important; }
+.bbg-cyan { color: var(--bbg-cyan) !important; }
+.bbg-green { color: var(--bbg-green) !important; }
+.bbg-red { color: var(--bbg-red) !important; }
+.bbg-yellow { color: var(--bbg-yellow) !important; }
+.bbg-dim { color: var(--bbg-text-dim) !important; }
+.bbg-bold { font-weight: 700 !important; }
+.text-center { text-align: center !important; }
+.bbg-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #060609;
+  border: 1px solid var(--bbg-amber);
+  border-top: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.8), 0 0 8px var(--bbg-amber-glow);
+  z-index: 9999;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.bbg-suggestion-item {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #222;
+  color: var(--bbg-amber);
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.bbg-suggestion-item.selected,
+.bbg-suggestion-item:hover {
+  background: #1a1505;
+  color: #ffaa00;
+}
+
+.bbg-suggestion-symbol {
+  font-weight: 800;
+  width: 100px;
+}
+.bbg-suggestion-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #aa8844;
+}
+.bbg-suggestion-type {
+  width: 60px;
+  text-align: right;
+  color: var(--bbg-cyan);
+}
+.bbg-suggestion-exch {
+  width: 50px;
+  text-align: right;
+  color: var(--bbg-green);
+}
