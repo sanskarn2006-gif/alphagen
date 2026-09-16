@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alpha Gen // ALGO TRADING TERMINAL & SELF-LEARNING BLACKBOX</title>
+  <link rel="stylesheet" href="./src/css/terminal.css">
+  <link rel="stylesheet" href="./src/css/components.css">
+</head>
+<body>
+  <!-- Alpha Gen Top Chrome -->
+  <header class="bbg-header">
+    <!-- Top System Telemetry -->
+    <div class="bbg-top-telemetry">
+      <div class="bbg-telemetry-item">
+        <div class="bbg-header-left">
+          <span class="bbg-logo"></span> Alpha Gen // <span class="bbg-cyan">QUANT DESK 04-MUMBAI</span>
+        </div>
+      </div>
+      <div class="bbg-telemetry-item">
+        <span class="bbg-dim">FEED:</span>
+        <span id="sys-feed-status" class="bbg-green bbg-bold">ONLINE</span>
+        <span class="bbg-dim">|</span>
+        <span class="bbg-dim">RATE:</span>
+        <span id="sys-feed-rate" class="bbg-cyan">0 TICKS/S</span>
+        <span class="bbg-dim">|</span>
+        <span class="bbg-dim">LATENCY:</span>
+        <span id="sys-latency" class="bbg-cyan">0.32 MS</span>
+        <span class="bbg-dim">|</span>
+        <span class="bbg-dim">TIME:</span>
+        <span id="sys-clock" class="bbg-yellow">--:--:-- UTC</span>
+      </div>
+    </div>
+
+    <!-- Alpha Gen Command Prompt Strip -->
+    <div class="bbg-command-strip">
+      <div class="bbg-prompt-label">
+        <span>Alpha Gen</span>
+        <span class="bbg-dim">&gt;</span>
+      </div>
+      <div class="bbg-command-input-wrap">
+        <input 
+          type="text" 
+          id="bbg-cmd-input" 
+          placeholder="ENTER COMMAND (E.G. NVDA, BBX ON, BUY 50, FLATTEN, SPEED 5X, HELP) & PRESS <GO>" 
+          autocomplete="off" 
+          spellcheck="false"
+        >
+        <button id="bbg-cmd-go" class="bbg-go-btn">&lt;GO&gt;</button>
+        <div id="cmd-suggestions" class="bbg-dropdown" style="display: none;"></div>
+      </div>
+      <button id="bbg-cmd-cancel" class="bbg-cancel-btn">&lt;ESC&gt;</button>
+    </div>
+
+    <!-- Function Keys Ribbon -->
+    <div class="bbg-fkeys-ribbon">
+      <button class="bbg-fkey-btn" data-cmd="HELP"><span class="bbg-fkey-num">&lt;F1&gt;</span> HELP</button>
+      <button class="bbg-fkey-btn" data-cmd="NIFTY"><span class="bbg-key">&lt;F2&gt;</span> NIFTY INDEX</button>
+      <button class="bbg-fkey-btn" data-cmd="RELIANCE"><span class="bbg-key">&lt;F3&gt;</span> RELIANCE EQUITY</button>
+      <button class="bbg-fkey-btn" data-cmd="HDFCBANK"><span class="bbg-key">&lt;F4&gt;</span> HDFCBANK EQUITY</button>
+      <button class="bbg-fkey-btn" data-cmd="INFY"><span class="bbg-key">&lt;F5&gt;</span> INFY EQUITY</button>
+      <button class="bbg-fkey-btn" data-cmd="TCS"><span class="bbg-key">&lt;F6&gt;</span> TCS EQUITY</button>
+      <button class="bbg-fkey-btn" data-cmd="ITC"><span class="bbg-key">&lt;F7&gt;</span> ITC EQUITY</button>
+      <button class="bbg-fkey-btn" data-cmd="BBX ON"><span class="bbg-fkey-num">&lt;F8&gt;</span> BBX ENGAGE</button>
+      <button class="bbg-fkey-btn" data-cmd="BBX TRAIN"><span class="bbg-fkey-num">&lt;F9&gt;</span> BBX BACKPROP</button>
+      <button class="bbg-fkey-btn" data-cmd="FLATTEN"><span class="bbg-fkey-num">&lt;F10&gt;</span> FLATTEN POS</button>
+      <button class="bbg-fkey-btn" data-cmd="PAUSE"><span class="bbg-fkey-num">&lt;F11&gt;</span> FEED PAUSE</button>
+      <button class="bbg-fkey-btn" data-cmd="CLEAR"><span class="bbg-fkey-num">&lt;F12&gt;</span> CLS LOG</button>
+    </div>
+
+    <!-- Active Ticker Watch & Quick Settings Ribbon -->
+    <div class="bbg-ticker-ribbon">
+      <div id="ticker-tabs" style="display:flex; gap: 6px;"></div>
+      <div class="bbg-quick-controls">
+        <span class="bbg-dim">SPEED:</span>
+        <select id="quick-speed-select" class="bbg-pill-select">
+          <option value="1">1X NORMAL</option>
+          <option value="2">2X FAST</option>
+          <option value="5">5X TURBO</option>
+          <option value="25">25X QUANT</option>
+          <option value="100">100X HFT</option>
+        </select>
+        <span class="bbg-dim">TF:</span>
+        <select id="quick-tf-select" class="bbg-pill-select">
+          <option value="1s">1 SEC</option>
+          <option value="5s" selected>5 SEC</option>
+          <option value="15s">15 SEC</option>
+          <option value="1m">1 MIN</option>
+        </select>
+        <button id="btn-quick-buy" class="bbg-btn bbg-btn-sm" style="border-color: var(--bbg-green); color: var(--bbg-green);">BUY 10</button>
+        <button id="btn-quick-sell" class="bbg-btn bbg-btn-sm" style="border-color: var(--bbg-red); color: var(--bbg-red);">SELL 10</button>
+        <button id="btn-sound-toggle" class="bbg-btn bbg-btn-sm">BEEP: ON</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 4-Tile Main Financial Workspace -->
+  <main class="bbg-workspace">
+    <!-- PANE 1: Candlestick & Technical Canvas -->
+    <section class="bbg-pane" id="pane-chart">
+      <div class="bbg-pane-header">
+        <span class="bbg-amber" id="chart-header-title">NIFTY IN Equity // REAL-TIME CANDLESTICK & VWAP</span>
+        <div style="display:flex; gap: 10px; font-size: 10px;">
+          <span class="bbg-dim">BID: <span id="hdr-bid" class="bbg-green">--</span></span>
+          <span class="bbg-dim">ASK: <span id="hdr-ask" class="bbg-red">--</span></span>
+          <span class="bbg-dim">VOL: <span id="hdr-vol" class="bbg-cyan">--</span></span>
+        </div>
+      </div>
+      <div class="bbg-pane-body" style="background:#07070a; position: relative;">
+        <div id="chart-container" style="width: 100%; height: 100%;"></div>
+      </div>
+    </section>
+
+    <!-- PANE 2: Level 2 Order Book Depth Ladder -->
+    <section class="bbg-pane" id="pane-orderbook">
+      <div id="orderbook-container" class="bbg-pane-body"></div>
+    </section>
+
+    <!-- PANE 3: Self-Learning Blackbox Neural Matrix & Terminal Console -->
+    <section class="bbg-pane" id="pane-neural">
+      <div class="bbg-pane-header">
+        <div style="display: flex; gap: 12px;">
+          <span id="tab-btn-neural" class="bbg-amber bbg-bold" style="cursor: pointer;">SYNAPTIC WEIGHT MATRIX</span>
+          <span id="tab-btn-console" class="bbg-dim" style="cursor: pointer;">TERMINAL LOG STDOUT</span>
+        </div>
+        <span class="bbg-cyan" style="font-size: 9px;">DQN / BACKPROP ACTIVE</span>
+      </div>
+      <div class="bbg-pane-body" id="neural-view-wrapper">
+        <canvas id="neural-canvas"></canvas>
+      </div>
+      <div class="bbg-pane-body" id="console-view-wrapper" style="display: none;">
+        <div id="terminal-stdout" class="bbg-log-stream"></div>
+      </div>
+    </section>
+
+    <!-- PANE 4: Feature Saliency & OMS Execution Blotter -->
+    <section class="bbg-pane" id="pane-saliency-blotter">
+      <div class="bbg-pane-body" style="display: flex; flex-direction: column; height: 100%;">
+        <!-- Saliency & Telemetry section -->
+        <div id="saliency-container" style="flex: 0 1 auto; overflow-y: auto; min-height: 0;"></div>
+        <!-- Order Blotter section -->
+        <div id="blotter-container" style="flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column; min-height: 0;"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Audio Synthesis Engine for Terminal Audio Beeps -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
