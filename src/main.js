@@ -424,7 +424,18 @@ class AlphaGenApp {
 
   initEvents() {
     this.market.subscribe((event, data) => {
-      if (event === 'tick') {
+      if (event === 'global_tick') {
+        const pxEl = document.getElementById(`ticker-px-${data.symbol}`);
+        if (pxEl) {
+          const oldPrice = parseFloat(pxEl.textContent);
+          pxEl.textContent = data.price.toFixed(2);
+          if (data.price > oldPrice) {
+            pxEl.className = 'bbg-ticker-price bbg-green';
+          } else if (data.price < oldPrice) {
+            pxEl.className = 'bbg-ticker-price bbg-red';
+          }
+        }
+      } else if (event === 'tick') {
         this.onMarketTick(data);
       } else if (event === 'symbol_change') {
         this.updateTickerRibbonActive();
@@ -446,10 +457,6 @@ class AlphaGenApp {
     this.hdrBid.textContent = data.bid.toFixed(2);
     this.hdrAsk.textContent = data.ask.toFixed(2);
     this.hdrVol.textContent = data.volume;
-
-    // Update active ticker price tab
-    const pxEl = document.getElementById(`ticker-px-${data.symbol}`);
-    if (pxEl) pxEl.textContent = data.price.toFixed(2);
 
     // 2. Regime Detection
     this.regimeDetector.update(data.price, data.volume);

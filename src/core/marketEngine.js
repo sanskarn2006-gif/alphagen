@@ -119,10 +119,13 @@ export class MarketEngine {
       if (!this.isRunning) return;
       try {
         const msg = JSON.parse(event.data);
-        if (msg.type === 'TICK') {
-          this.processLiveTick(msg);
-        } else if (msg.event === 'tick' && msg.data) {
-          this.processLiveTick(msg.data);
+        const tickData = msg.type === 'TICK' ? msg : (msg.event === 'tick' ? msg.data : null);
+        
+        if (tickData) {
+          this.notify('global_tick', tickData);
+          if (tickData.symbol === this.symbol) {
+             this.processLiveTick(tickData);
+          }
         }
       } catch (err) {
         console.error('WS Parse Error', err);

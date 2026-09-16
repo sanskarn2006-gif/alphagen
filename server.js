@@ -381,26 +381,37 @@ wss.on('connection', (ws) => {
            console.log(`[Yahoo Finance] Failed to fetch real price for ${msg.symbol}, using basePrice fallback.`);
         }
         
-        // Polling Yahoo Finance every 2 seconds for real-time live data instead of simulated noise
+        // Create reverse mapping to map YF symbols back to local symbols
+        const reverseMapping = {};
+        for (const [localSym, yfSym] of Object.entries(symbolMapping)) {
+            reverseMapping[yfSym] = localSym;
+        }
+        const yfSymbols = Object.values(symbolMapping);
+
+        // Polling Yahoo Finance every 2 seconds for ALL symbols
         simulationInterval = setInterval(async () => {
           try {
-             const quote = await yahooFinance.quote(yfSym);
-             if (quote && quote.regularMarketPrice) {
-                 currentPrice = quote.regularMarketPrice;
-                 
-                 // Send the real tick to the client
-                 ws.send(JSON.stringify({
-                   event: 'tick',
-                   data: {
-                     symbol: msg.symbol,
-                     price: currentPrice,
-                     bid: currentPrice - 0.05,
-                     ask: currentPrice + 0.05,
-                     volume: quote.regularMarketVolume || Math.floor(Math.random() * 100) + 1,
-                     timestamp: Date.now()
-                   }
-                 }));
-             }
+             const quotes = await yahooFinance.quote(yfSymbols);
+             const quoteArray = Array.isArray(quotes) ? quotes : [quotes];
+             
+             quoteArray.forEach(quote => {
+                 if (quote && quote.regularMarketPrice) {
+                     const currentPrice = quote.regularMarketPrice;
+                     const localSym = reverseMapping[quote.symbol] || quote.symbol;
+                     
+                     ws.send(JSON.stringify({
+                       event: 'tick',
+                       data: {
+                         symbol: localSym,
+                         price: currentPrice,
+                         bid: currentPrice - 0.05,
+                         ask: currentPrice + 0.05,
+                         volume: quote.regularMarketVolume || Math.floor(Math.random() * 100) + 1,
+                         timestamp: Date.now()
+                       }
+                     }));
+                 }
+             });
           } catch (e) {
              // Silently ignore poll errors to keep stream alive
           }
