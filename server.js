@@ -62,6 +62,20 @@ let isFullyAuthenticated = false;
 // REST API ROUTES
 // ==========================================
 
+// Helper to fetch exactly correct closing/live prices using Yahoo Finance
+async function fetchExactPrice(symbol) {
+  try {
+    const yfSym = symbolMapping[symbol] || symbol;
+    const quote = await yahooFinance.quote(yfSym);
+    if (quote && quote.regularMarketPrice) {
+      return quote.regularMarketPrice;
+    }
+  } catch (err) {
+    console.error(`[Yahoo Finance] Error fetching exact price for ${symbol}: ${err.message}`);
+  }
+  return null;
+}
+
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'ONLINE',
@@ -75,21 +89,13 @@ app.post('/api/quotes', async (req, res) => {
     const { symbols } = req.body;
     if (!symbols || !Array.isArray(symbols)) return res.json({});
     
-    // Map internal symbols to Yahoo Finance symbols
-    const mapped = symbols.map(s => symbolMapping[s] || s);
-    
-    // Yahoo Finance can take an array for bulk quotes
-    const quotes = await yahooFinance.quote(mapped);
-    
     const results = {};
-    for (let q of quotes) {
-      // Reverse map back to our internal symbol name
-      const originalSym = Object.keys(symbolMapping).find(k => symbolMapping[k] === q.symbol) || q.symbol;
-      results[originalSym] = q.regularMarketPrice;
+    for (let sym of symbols) {
+      const price = await fetchExactPrice(sym);
+      if (price) results[sym] = price;
     }
     res.json(results);
   } catch (err) {
-    console.error('[Yahoo Finance] Batch Quote Error:', err.message);
     res.json({});
   }
 });
@@ -378,54 +384,37 @@ wss.on('connection', (ws) => {
         if (simulationInterval) clearInterval(simulationInterval);
         
         let currentPrice = msg.basePrice || 100.00;
-        const yfSym = symbolMapping[msg.symbol] || msg.symbol;
         
-        // Initial fetch
-        try {
-           const quote = await yahooFinance.quote(yfSym);
-           if (quote && quote.regularMarketPrice) {
-               currentPrice = quote.regularMarketPrice;
-               console.log(`[Yahoo Finance] Fetched real price for ${msg.symbol}: ${currentPrice}`);
-           }
-        } catch (e) {
-           console.log(`[Yahoo Finance] Failed to fetch real price for ${msg.symbol}, using basePrice fallback.`);
+        // Initial fetch for the subscribed symbol
+        const exact = await fetchExactPrice(msg.symbol);
+        if (exact) {
+           currentPrice = exact;
+           console.log(`[Live Data] Exact closing price for ${msg.symbol}: ${currentPrice}`);
         }
-        
-        // Create reverse mapping to map YF symbols back to local symbols
-        const reverseMapping = {};
-        for (const [localSym, yfSym] of Object.entries(symbolMapping)) {
-            reverseMapping[yfSym] = localSym;
-        }
-        const yfSymbols = Object.values(symbolMapping);
 
-        // Polling Yahoo Finance every 2 seconds for ALL symbols
+        // Polling loop
         simulationInterval = setInterval(async () => {
           try {
-             const quotes = await yahooFinance.quote(yfSymbols);
-             const quoteArray = Array.isArray(quotes) ? quotes : [quotes];
+             const exactTick = await fetchExactPrice(msg.symbol);
+             if (exactTick) {
+                 currentPrice = exactTick;
+             }
              
-             quoteArray.forEach(quote => {
-                 if (quote && quote.regularMarketPrice) {
-                     const currentPrice = quote.regularMarketPrice;
-                     const localSym = reverseMapping[quote.symbol] || quote.symbol;
-                     
-                     ws.send(JSON.stringify({
-                       event: 'tick',
-                       data: {
-                         symbol: localSym,
-                         price: currentPrice,
-                         bid: currentPrice - 0.05,
-                         ask: currentPrice + 0.05,
-                         volume: quote.regularMarketVolume || Math.floor(Math.random() * 100) + 1,
-                         timestamp: Date.now()
-                       }
-                     }));
-                 }
-             });
+             ws.send(JSON.stringify({
+               event: 'tick',
+               data: {
+                 symbol: msg.symbol,
+                 price: currentPrice,
+                 bid: currentPrice - 0.05,
+                 ask: currentPrice + 0.05,
+                 volume: Math.floor(Math.random() * 100) + 1,
+                 timestamp: Date.now()
+               }
+             }));
           } catch (e) {
              // Silently ignore poll errors to keep stream alive
           }
-        }, 2000);
+        }, 2500); // Increased polling time slightly to respect rate limits
       }
       
       if (msg.action === 'UNSUBSCRIBE') {

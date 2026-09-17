@@ -245,6 +245,9 @@ export class CommandParser {
         log(`SEARCHING FOR SYMBOL: ${primary}...`, 'info');
         try {
           const res = await fetch(`/api/search/${primary}`);
+          if (!res.ok) {
+            throw new Error(`Server returned ${res.status} ${res.statusText}`);
+          }
           const data = await res.json();
           if (data && data.results && data.results.length > 0) {
             const topMatch = data.results[0];
@@ -259,11 +262,15 @@ export class CommandParser {
                  headers: {'Content-Type': 'application/json'},
                  body: JSON.stringify({ symbols: [sym] })
                });
-               const quoteData = await quoteRes.json();
-               if (quoteData && quoteData[sym]) {
-                  currentPrice = quoteData[sym];
+               if (quoteRes.ok) {
+                 const quoteData = await quoteRes.json();
+                 if (quoteData && quoteData[sym]) {
+                    currentPrice = quoteData[sym];
+                 }
                }
-            } catch(e) {}
+            } catch (err) {
+               // quote failed, use 1000
+            }
             
             // Inject dynamically into MarketEngine's cache with correct base price
             this.ctx.marketEngine.addDynamicInstrument(sym, name, currentPrice);
